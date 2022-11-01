@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>week7作業</title>
+        <link rel="stylesheet" type="text/css" href="http://127.0.0.1:3000/static/successful.css">
+    </head>
+
+    <body>
+        <div class="success">
+            <div class="success_top"><b>歡迎光臨，這是會員頁面</b></div>
+            <div class="success_under">{{name}}，歡迎登入系統</div>
+            <a href="http://127.0.0.1:3000/signout">登出系統</a>
+        </div>
+
+        <hr/>
+
+        <div class="message_input">
+            <form action="/message" method="post">
+                <div><b>快來留言喔</b></div>
+                <textarea class="message_input_text" type="text" name="content" rows="6" cols="40" required>輸入想輸入的內容....</textarea>
+                <button class="message_input_send">送出</button>
+            </form>
+        </div>
+
+        <hr/>
+        <div class="lookfor">
+            <div class="lookfor_input">
+                <div><b>查詢會員姓名</b></div>
+                <input class="lookfor_input_text" type="text"/>
+                <button class="lookfor_input_send">查詢</button>
+                <div class="lookfor_result"></div>
+            </div>
+        </div>
+
+        <hr/>
+        <div class="update">
+            <div class="update_name">
+                <div><b>更新我的姓名</b></div>
+                <input class="update_name_text" type="text"/>
+                <button class="update_name_send">更新</button>
+                <div class="update_result"></div>
+            </div>
+        </div>
+
+        <hr/>
+        <div class="message_output">
+            {% for x in messageall %}
+                <div>{{x.0}}:{{x.1}}</div>
+            {% endfor %}
+        </div>
+    </body>
+
+    <script>
+        function findItName(){
+            let username = ""
+            username = document.querySelector('.lookfor_input_text').value
+            console.log(username)
+            fetch("/api/member?username="+username).then(function(response){
+                return response.json();
+            }).then(function(jsonData){
+                let result = jsonData
+                if (result.data != null){
+                    name = result.data.name
+                    document.querySelector(".lookfor_result").textContent = name
+                }else{
+                    document.querySelector(".lookfor_result").textContent = "查無此人"
+                }
+            })
+        }
+        var lookFor = document.querySelector(".lookfor_input_send")
+        lookFor.addEventListener("click",findItName,false)
+
+
+        function update(){
+            newname = document.querySelector('.update_name_text').value
+            if (newname !== ""){
+                fetch("/api/member",{
+                    method: 'PATCH',
+
+                    header: {
+                        'Content-Type': ' application/json'
+                    },
+
+                    body: JSON.stringify({
+                        'name': newname
+                    })
+                }).then((response) => {
+                    return response.json();
+                }).then((jsonData) => {
+                    console.log(jsonData);
+                    let updateName = jsonData;
+                    console.log(updateName.ok)
+                    if(updateName.ok){
+                        document.querySelector(".success_under").textContent = newname+"，歡迎登入系統"
+                        document.querySelector(".update_result").textContent = "更新成功"
+                    }
+                    else{
+                        document.querySelector(".update_result").textContent = "更新失敗"
+                    }
+                }).catch((err) => {
+                    console.log('錯誤',err)
+                })
+            }else{
+                document.querySelector(".update_result").textContent = "請填寫"
+                }
+            }
+        var updateName = document.querySelector(".update_name_send")
+        updateName.addEventListener("click",update,false)
+    </script>
+</html>
